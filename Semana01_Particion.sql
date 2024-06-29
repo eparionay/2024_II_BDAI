@@ -1,0 +1,84 @@
+CREATE DATABASE BD_PARTICION
+GO
+
+USE BD_PARTICION
+GO
+
+
+ALTER DATABASE BD_PARTICION ADD FILEGROUP GRUPO01 
+GO
+ALTER DATABASE BD_PARTICION ADD FILEGROUP GRUPO02
+GO
+ALTER DATABASE BD_PARTICION ADD FILEGROUP GRUPO03
+GO
+ALTER DATABASE BD_PARTICION ADD FILEGROUP GRUPO04
+GO
+
+ALTER DATABASE BD_PARTICION
+ADD FILE
+(NAME = GRUPO01, FILENAME='D:\BD_PARTICION\GRUPO01.ndf')
+to filegroup GRUPO01
+GO
+
+ALTER DATABASE BD_PARTICION
+ADD FILE
+(NAME = GRUPO02, FILENAME='D:\BD_PARTICION\GRUPO02.ndf')
+to filegroup GRUPO02
+GO
+
+ALTER DATABASE BD_PARTICION
+ADD FILE
+(NAME = GRUPO03, FILENAME='D:\BD_PARTICION\GRUPO03.ndf')
+to filegroup GRUPO03
+GO
+
+ALTER DATABASE BD_PARTICION
+ADD FILE
+(NAME = GRUPO04, FILENAME='D:\BD_PARTICION\GRUPO04.ndf')
+to filegroup GRUPO04
+GO
+
+-- EDADES 
+-- RANGOS 20, 40, 60 LEFT
+
+CREATE PARTITION FUNCTION fn_partEdades(int)
+as range LEFT for values (20,40,60)
+go
+
+create partition scheme esquema_partEdades
+as partition fn_partEdades
+to (GRUPO01, GRUPO02, GRUPO03, GRUPO04)
+GO
+
+CREATE TABLE PERSONA(
+	codigo int identity(1,1),
+	nombre varchar(20),
+	edad int
+) on esquema_partEdades(edad)
+go
+
+/*
+-- RANGOS 20, 40, 60 LEFT
+			<=20   1
+			<=40   2
+			<=60   3
+			>60	   4	
+*/
+
+insert into PERSONA(nombre,edad) values ('E', 10)
+insert into PERSONA(nombre,edad) values ('F', 30)
+insert into PERSONA(nombre,edad) values ('A', 40)
+insert into PERSONA(nombre,edad) values ('G', 60)
+
+SELECT *, $partition.fn_partEdades(edad) from PERSONA
+
+
+
+
+
+
+
+
+
+
+
